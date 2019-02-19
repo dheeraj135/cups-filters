@@ -39,7 +39,6 @@ ProcessingParameters()
     deviceCollate(false),setDuplex(false),
 
     page_logging(-1)
-    
   {
     page.width=612.0; // letter
     page.height=792.0;

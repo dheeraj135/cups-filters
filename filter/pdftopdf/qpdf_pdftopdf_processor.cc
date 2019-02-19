@@ -183,7 +183,6 @@ Rotation QPDF_PDFTOPDF_PageHandle::crop(const PageRect &cropRect,Rotation orient
   else
     page.replaceOrRemoveKey("/Rotate",makeRotate(ROT_0));
 
-  
   PageRect currpage= getBoxAsRect(getTrimBox(page));
   double width = currpage.right-currpage.left;
   double height = currpage.top-currpage.bottom;
@@ -228,7 +227,6 @@ Rotation QPDF_PDFTOPDF_PageHandle::crop(const PageRect &cropRect,Rotation orient
   //Cropping.
   // TODO: Borders are covered by the image. buffer space?
   page.replaceKey("/TrimBox",makeBox(currpage.left,currpage.bottom,currpage.right,currpage.top));
-  
   page.replaceOrRemoveKey("/Rotate",makeRotate(ROT_0));
   return getRotate(page);
 }

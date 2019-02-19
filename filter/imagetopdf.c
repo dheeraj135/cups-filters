@@ -693,7 +693,6 @@ main(int  argc,				/* I - Number of command-line arguments */
   int deviceReverse = 0;
   ppd_attr_t *attr;
   int pl,pr;
-  
   int fillprint = 0;  /* print-scaling = fill */
  /*
   * Make sure status messages are not buffered...
@@ -997,11 +996,11 @@ main(int  argc,				/* I - Number of command-line arguments */
       perror("ERROR: Unable to copy image file");
       return (1);
     }
-      char *val;
-      if((val = cupsGetOption("orientation-requested",num_options,options))!=NULL)
-      {
-        tempOrientation = atoi(val);
-      }
+    char *val;
+    if((val = cupsGetOption("orientation-requested",num_options,options))!=NULL)
+    {
+      tempOrientation = atoi(val);
+    }
     if(tempOrientation>0)
     {
       if(tempOrientation==4||tempOrientation==5)
@@ -1023,28 +1022,19 @@ main(int  argc,				/* I - Number of command-line arguments */
     }
     float final_w,final_h;
     if(w*ph/pw <=h){
-          final_w =w;
-          final_h =w*ph/pw; 
-        }
-        else{
-          final_w = h*pw/ph;
-          final_h = h;
+      final_w =w;
+      final_h =w*ph/pw; 
+    }
+    else{
+      final_w = h*pw/ph;
+      final_h = h;
     }
     float posw=(w-final_w)/2,posh=(h-final_h)/2;
     posw = (1+XPosition)*posw;
     posh = (1-YPosition)*posh;
-    sprintf(temp,"convert %s -crop %fx%f+%f+%f %s \n",filename,final_w,final_h,posw,posh,tempfilename);
-    fprintf(stderr,"[INFO] Executing: %s\n",temp);
-    int status = system(temp);
-    if(status<0)
-    {
-      fprintf(stderr,"[Error] Unable to execute \'convert\' command.\n");
-      fprintf(stderr,"Continuing without cropping the image. Try using pdftopdf filter.\n");
-    }
-    else{
-      close(img);
-      img = cupsImageOpen(tempfilename, colorspace, CUPS_IMAGE_WHITE, sat, hue, NULL);
-    }
+    cups_image_t *img2 = cupsImageCrop(img,posw,posh,final_w,final_h);
+    cupsImageClose(img);
+    img = img2;
   }
 
 #if defined(USE_CONVERT_CMD) && defined(CONVERT_CMD)
