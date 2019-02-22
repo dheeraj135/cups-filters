@@ -331,6 +331,15 @@ void getParameters(ppd_file_t *ppd,int num_options,cups_option_t *options,Proces
       param.fillprint=true;
     }
   }
+  /*
+   * crop-to-fit
+   */
+  if((val = cupsGetOption("crop-to-fit",num_options,options))!= NULL){
+    if(!strcasecmp(val,"true")||!strcasecmp(val,"yes"))
+    {
+      param.cropfit=1;
+    }
+  }
 
   if (ppd && (ppd->landscape < 0)) { // direction the printer rotates landscape (90 or -90)
     param.normal_landscape=ROT_270;
@@ -755,6 +764,15 @@ bool checkFeature(const char *feature, int num_options, cups_option_t *options) 
 	      (lastfilter ? lastfilter : "None"), final_content_type,
 	      (param.page_logging == 0 ? "not " : ""));
     }
+  }
+  /*
+   *  To make sure fillprint or cropfit is not applied twice.
+   */
+  char* content_type = getenv("CONTENT_TYPE");
+  if(!strncasecmp(content_type,"image",5))
+  {
+    param.fillprint =0;
+    param.cropfit =0;
   }
 }
 // }}}

@@ -191,6 +191,7 @@ main(int  argc,				/* I - Number of command-line arguments */
   cm_calibration_t      cm_calibrate;   /* Are we color calibrating the device? */
   int                   cm_disabled;    /* Color management disabled? */
   int fillprint = 0;  /* print-scaling = fill */
+	int cropfit = 0;		/* -o crop-to-fit */
  /*
   * Make sure status messages are not buffered...
   */
@@ -392,6 +393,12 @@ main(int  argc,				/* I - Number of command-line arguments */
   if((val = cupsGetOption("print-scaling",num_options,options)) !=0) {
     if(!strcasecmp(val,"fill")) {
         fillprint = 1;
+    }
+  }
+	if((val = cupsGetOption("crop-to-fit",num_options,options))!= NULL){
+    if(!strcasecmp(val,"true")||!strcasecmp(val,"yes"))
+    {
+      cropfit=1;
     }
   }
 
@@ -696,60 +703,96 @@ main(int  argc,				/* I - Number of command-line arguments */
     img = cupsImageOpen(filename, primary, secondary, sat, hue, lut);
   if(img!=NULL)
   {
-    if(fillprint)
+    if(fillprint||cropfit)
     {
       float w = (float)cupsImageGetWidth(img);
       float h = (float)cupsImageGetHeight(img);
       float pw = PageRight-PageLeft;
       float ph = PageTop-PageBottom;
-      char temp[3072],*val;
-      char tempfilename[1024];
+      char *val;
       int tempOrientation = Orientation;
-      if ((cupsTempFd(tempfilename, sizeof(tempfilename))) < 0)
-      {
-        perror("ERROR: Unable to copy image file");
-        return (1);
-      }
+			int flag =3;
       if((val = cupsGetOption("orientation-requested",num_options,options))!=NULL)
       {
         tempOrientation = atoi(val);
       }
-      if(tempOrientation>0)
-      {
-        if(tempOrientation==4||tempOrientation==5)
-        {
-          float temp = pw;
-          pw = ph;
-          ph = temp;
-        }
-      }
-      if(tempOrientation==0)
-      {
-        float ratio = ph/pw;
-        if(h/w < ratio)
-        {
-          float temp = pw;
-          pw = ph;
-          ph = temp;
-        }
-      }
-      // Final width and height of cropped image.
-      float final_w,final_h;
-      if(w*ph/pw <=h){
-        final_w =w;
-        final_h =w*ph/pw; 
-      }
-      else{
-        final_w = h*pw/ph;
-        final_h = h;
-      }
-      // posw and posh are position of the cropped image along width and height.
-      float posw=(w-final_w)/2,posh=(h-final_h)/2;
-      posw = (1+XPosition)*posw;
-      posh = (1-YPosition)*posh;
-      cups_image_t *img2 = cupsImageCrop(img,posw,posh,final_w,final_h);
-      cupsImageClose(img);
-      img = img2;
+			if(tempOrientation>0)
+				{
+					if(tempOrientation==4||tempOrientation==5)
+					{
+						float temp = pw;
+						pw = ph;
+						ph = temp;
+						flag = 4;
+					}
+				}
+			if(tempOrientation==0)
+			{
+				if(min(pw,w)*min(ph,h)<min(pw,h)*min(ph,w))
+				{
+					int temp = pw;
+					pw = ph;
+					ph = temp;
+					flag = 4;
+				}
+			}
+			if(fillprint)
+			{
+				// Final width and height of cropped image.
+				float final_w,final_h;
+				if(w*ph/pw <=h){
+					final_w =w;
+					final_h =w*ph/pw; 
+				}
+				else{
+					final_w = h*pw/ph;
+					final_h = h;
+				}
+				// posw and posh are position of the cropped image along width and height.
+				float posw=(w-final_w)/2,posh=(h-final_h)/2;
+				posw = (1+XPosition)*posw;
+				posh = (1-YPosition)*posh;
+				cups_image_t *img2 = cupsImageCrop(img,posw,posh,final_w,final_h);
+				cupsImageClose(img);
+				img = img2;
+			}
+			else {
+				float final_w=w,final_h=h;
+				
+				if(w>pw)
+				{
+					final_w = pw;
+				}
+				if(h>ph)
+				{
+					final_h = ph;
+				}
+				if((fabs(final_w-w)>0.5*w)||(fabs(final_h-h)>0.5*h))
+				{
+					fprintf(stderr,"[DEBUG]: Ignoring crop-to-fit option!\n");
+					cropfit=0;
+				}
+				else{
+					float posw=(w-final_w)/2,posh=(h-final_h)/2;
+					posw = (1+XPosition)*posw;
+					posh = (1-YPosition)*posh;
+					cups_image_t *img2 = cupsImageCrop(img,posw,posh,final_w,final_h);
+					cupsImageClose(img);
+					img = img2;
+					if(flag==4)
+					{
+						int temp = final_h;
+						final_h = final_w;
+						final_w = temp;
+					}
+					PageBottom+=(PageTop-PageBottom-final_h)/2;
+					PageTop = PageBottom+final_h;
+					PageLeft +=(PageRight-PageLeft-final_w)/2;
+					PageRight = PageLeft+final_w;
+					if(PageBottom<0) PageBottom = 0;
+					if(PageLeft<0) PageLeft = 0;
+				}
+			}	
     }
   }
   if (argc == 6)
