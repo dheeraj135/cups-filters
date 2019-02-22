@@ -1005,17 +1005,17 @@ main(int  argc,				/* I - Number of command-line arguments */
       tempOrientation = atoi(val);
     }
     if(tempOrientation>0)
-		{
-			if(tempOrientation==4||tempOrientation==5)
-			{
-				float temp = pw;
-				pw = ph;
-				ph = temp;
-				flag = 4;
-			}
-		}
-		if(tempOrientation==0)
-		{
+    {
+      if(tempOrientation==4||tempOrientation==5)
+      {
+        float temp = pw;
+        pw = ph;
+        ph = temp;
+        flag = 4;
+      }
+    }
+    if(tempOrientation==0)
+    {
       int temp1 = pw,
           temp2 = ph,
           temp3 = pw,
@@ -1024,14 +1024,14 @@ main(int  argc,				/* I - Number of command-line arguments */
       if(temp2>h) temp2 = h;
       if(temp3>h) temp3 = h;
       if(temp4>w) temp4 = w; 
-			if(temp1*temp2<temp3*temp4)
-			{
-				int temp = pw;
-				pw = ph;
-				ph = temp;
-				flag = 4;
-			}
-		}
+      if(temp1*temp2<temp3*temp4)
+      {
+        int temp = pw;
+        pw = ph;
+        ph = temp;
+        flag = 4;
+      }
+    }
     if(fillprint){
       float final_w,final_h;
       if(w*ph/pw <=h){
@@ -1073,17 +1073,17 @@ main(int  argc,				/* I - Number of command-line arguments */
         cupsImageClose(img);
         img = img2;
         if(flag==4)
-				{
-				  int temp = final_h;
-					final_h = final_w;
-					final_w = temp;
-				}
-				PageBottom+=(PageTop-PageBottom-final_h)/2;
-				PageTop = PageBottom+final_h;
-				PageLeft +=(PageRight-PageLeft-final_w)/2;
-				PageRight = PageLeft+final_w;
+        {
+          int temp = final_h;
+        	final_h = final_w;
+        	final_w = temp;
+        }
+        PageBottom+=(PageTop-PageBottom-final_h)/2;
+        PageTop = PageBottom+final_h;
+        PageLeft +=(PageRight-PageLeft-final_w)/2;
+        PageRight = PageLeft+final_w;
         if(PageBottom<0) PageBottom = 0;
-				if(PageLeft<0) PageLeft = 0;
+        if(PageLeft<0) PageLeft = 0;
       }
     }
   }
